@@ -145,12 +145,10 @@
     </style>
 </head>
 <body>
-    <div id="protection-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(20px); z-index: 9999; color: white; justify-content: center; align-items: center; text-align: center; font-size: 24px;">
-        <div>
-            <p>Content Protected</p>
-            <p style="font-size: 16px;">Please keep the window active to view the lesson.</p>
-        </div>
-    </div>
+    <div id="protection-shield" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #064e3b; z-index: 10000; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
+    <h1 style="color: #a3e635;">CONTENT PROTECTED</h1>
+    <p style="color: white; font-size: 1.2rem;">Please return to the browser window to continue the lesson.</p>
+</div>
     
     <div id="yt-background-player"></div>
 
@@ -1130,43 +1128,47 @@ function toggleBackgroundMusic() {
         if (btn) btn.innerHTML = '⏸️'; // Pause icon indicator
     }
 }
+
+        (function() {
+    const shield = document.getElementById('protection-shield');
+
+    const activateShield = () => {
+        shield.style.display = 'flex';
+        // Optional: clear clipboard to prevent "PrintScreen" pasting
+        navigator.clipboard.writeText('Content Protected');
+    };
+
+    const deactivateShield = () => {
+        shield.style.display = 'none';
+    };
+
+    // 1. BLUR BEFORE: Detects when the user clicks a screenshot tool or switches apps
+    window.addEventListener('blur', activateShield);
     
-const overlay = document.getElementById('protection-overlay');
+    // 2. BLUR DURING: Detects if the tab becomes "inactive" (user is focusing on a capture area)
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) activateShield();
+    });
 
-function enableProtection() {
-    overlay.style.display = 'flex';
-}
+    // 3. UNBLUR: Only when they are back inside the window
+    window.addEventListener('focus', deactivateShield);
 
-function disableProtection() {
-    overlay.style.display = 'none';
-}
+    // 4. BLOCK KEYBOARD SHORTCUTS (Standard Protection)
+    document.addEventListener('keydown', (e) => {
+        // Prevents PrintScreen, Ctrl+P, Ctrl+S, Ctrl+Shift+I
+        if (
+            e.key === 'PrintScreen' || 
+            (e.ctrlKey && (e.key === 'p' || e.key === 's' || e.key === 'u' || e.key === 'shiftKey'))
+        ) {
+            e.preventDefault();
+            activateShield();
+        }
+    });
 
-// 1. Detect when the user switches tabs or opens another app (e.g. Snipping Tool)
-document.addEventListener('visibilitychange', () => {
-    if (document.hidden) enableProtection();
-});
+    // Disable right-click
+    document.addEventListener('contextmenu', e => e.preventDefault());
+})();
 
-// 2. Detect when the window loses focus (clicking away)
-window.addEventListener('blur', enableProtection);
-
-// 3. Re-enable view when they click back into the window
-window.addEventListener('focus', disableProtection);
-
-// 4. Clear the clipboard if they try to use PrintScreen
-document.addEventListener('keyup', (e) => {
-    if (e.key === 'PrintScreen') {
-        navigator.clipboard.writeText(''); 
-        alert('Screenshots are not permitted on this platform.');
-    }
-});
-
-// 5. Disable Right Click and common shortcuts (F12, Ctrl+U, etc.)
-document.addEventListener('contextmenu', e => e.preventDefault());
-document.addEventListener('keydown', (e) => {
-    if (e.ctrlKey && (e.key === 'p' || e.key === 's' || e.key === 'u' || e.key === 'c')) {
-        e.preventDefault();
-    }
-});
     </script>
 </body>
 </html>
