@@ -18,21 +18,38 @@
             color: beige; 
             font-family: 'Segoe UI', sans-serif; 
             min-height: 100vh; margin: 0; 
-            display: flex; flex-direction: column; align-items: center; 
-            /* This line prevents browser double-tap zoom */
+            display: flex; flex-direction: column; align-items: center;
             touch-action: manipulation;
-            /* Prevents text selection */
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-            user-select: none;
         }
 
-/* Adds a basic 'anti-screenshot' layer when printing or capturing */
-@media print {
-    body { display: none; }
+        /* Highly aggressive: prevents selection and hides during print/capture attempts */
+.protected-content {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
-        }
+
+@media print {
+    body { display: none !important; }
+}
+
+#force-block-layer {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #000000; /* Total blackout */
+    z-index: 2147483647; /* Highest possible depth */
+    color: #a3e635;
+    justify-content: center;
+    align-items: center;
+    font-family: sans-serif;
+}
+
+
 
         nav { width: 100%; padding: 20px; text-align: center; background: rgba(0,0,0,0.2); border-bottom: var(--border); margin-bottom: 20px; }
         nav a { color: var(--text-color); margin: 0 15px; text-decoration: none; cursor: pointer; font-weight: bold; }
@@ -145,10 +162,12 @@
     </style>
 </head>
 <body>
-    <div id="protection-shield" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #064e3b; z-index: 10000; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
-    <h1 style="color: #a3e635;">CONTENT PROTECTED</h1>
-    <p style="color: white; font-size: 1.2rem;">Please return to the browser window to continue the lesson.</p>
+    <div id="force-block-layer">
+    <h1>⚠️ SCREENSHOT BLOCKED</h1>
 </div>
+
+<div class="protected-content">
+    </div>
     
     <div id="yt-background-player"></div>
 
@@ -1130,43 +1149,40 @@ function toggleBackgroundMusic() {
 }
 
         (function() {
-    const shield = document.getElementById('protection-shield');
+    const blocker = document.getElementById('force-block-layer');
 
-    const activateShield = () => {
-        shield.style.display = 'flex';
-        // Optional: clear clipboard to prevent "PrintScreen" pasting
-        navigator.clipboard.writeText('Content Protected');
+    const block = () => {
+        blocker.style.display = 'flex';
+        document.title = "BLOCKED";
     };
 
-    const deactivateShield = () => {
-        shield.style.display = 'none';
+    const unblock = () => {
+        blocker.style.display = 'none';
+        document.title = "FORCE, MOTION AND ENERGY";
     };
 
-    // 1. BLUR BEFORE: Detects when the user clicks a screenshot tool or switches apps
-    window.addEventListener('blur', activateShield);
-    
-    // 2. BLUR DURING: Detects if the tab becomes "inactive" (user is focusing on a capture area)
+    // 1. HARD BLUR: Triggered when the window is no longer the "Active" focus
+    // This happens the moment a user clicks a screenshot tool or swipes for a menu.
+    window.addEventListener('blur', block);
+    window.addEventListener('focus', unblock);
+
+    // 2. TAB SWITCHING: If they try to use a browser-based capture tool
     document.addEventListener('visibilitychange', () => {
-        if (document.hidden) activateShield();
+        if (document.hidden) block();
     });
 
-    // 3. UNBLUR: Only when they are back inside the window
-    window.addEventListener('focus', deactivateShield);
-
-    // 4. BLOCK KEYBOARD SHORTCUTS (Standard Protection)
-    document.addEventListener('keydown', (e) => {
-        // Prevents PrintScreen, Ctrl+P, Ctrl+S, Ctrl+Shift+I
-        if (
-            e.key === 'PrintScreen' || 
-            (e.ctrlKey && (e.key === 'p' || e.key === 's' || e.key === 'u' || e.key === 'shiftKey'))
-        ) {
-            e.preventDefault();
-            activateShield();
+    // 3. KEYBOARD KILL-SWITCH: Immediate blackout on common capture keys
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'PrintScreen' || e.key === 'Snapshot' || (e.ctrlKey && e.shiftKey && e.key === 'S')) {
+            block();
+            setTimeout(unblock, 2000); // Briefly blackout
+            navigator.clipboard.writeText("Protected Content"); // Purge clipboard
         }
     });
 
-    // Disable right-click
-    document.addEventListener('contextmenu', e => e.preventDefault());
+    // 4. MOUSE LEAVE: If the mouse leaves the browser area (common for snipping)
+    document.addEventListener('mouseleave', block);
+    document.addEventListener('mouseenter', unblock);
 })();
 
     </script>
