@@ -931,6 +931,9 @@ const musicLabel = userWantsMusic ? 'PAUSE' : 'PLAY';
     if (!cleanText) return;
 
     const utterance = new SpeechSynthesisUtterance(cleanText);
+            utterance.rate = 0.8;
+            utterance.volume = 1.0;
+            utterance.pitch = 1.0;
     
     // Pause background music while the voice reads
     if (ytPlayer) {
