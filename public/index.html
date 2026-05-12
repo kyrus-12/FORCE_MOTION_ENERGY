@@ -860,9 +860,9 @@
         }).join('');
     }
     
-    // Dynamic icon depending on current play state
-    const musicIcon = userWantsMusic ? '⏸️' : '🎵';
     
+const musicLabel = userWantsMusic ? 'PAUSE' : 'PLAY';
+
     container.innerHTML = `
         <div id="lesson-scoreboard" style="display: flex; justify-content: space-between; align-items: center;">
             <div>
@@ -870,7 +870,7 @@
             </div>
             
             <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 5px;">
-                <button id="music-toggle-btn" class="music-btn" onclick="toggleBackgroundMusic()">${musicIcon}</button>
+                <button id="music-toggle-btn" class="music-btn" onclick="toggleBackgroundMusic()">${musicLabel}</button>
                 <div style="font-size: 0.85rem; opacity: 0.9;">
                     Overall: <span id="overall-score">${calculateTotalScore()}</span> | 
                     Section: <span id="section-score">${calculateSectionScore()}</span>
@@ -1105,12 +1105,12 @@ function toggleBackgroundMusic() {
         // Pause the music
         ytPlayer.pauseVideo();
         userWantsMusic = false;
-        if (btn) btn.innerHTML = '🎵'; // Play icon indicator
+        if (btn) btn.innerHTML = 'PLAY'; // Play icon indicator
     } else {
         // Start playing
         ytPlayer.playVideo();
         userWantsMusic = true;
-        if (btn) btn.innerHTML = '⏸️'; // Pause icon indicator
+        if (btn) btn.innerHTML = 'PAUSE'; // Pause icon indicator
     }
 }
         
