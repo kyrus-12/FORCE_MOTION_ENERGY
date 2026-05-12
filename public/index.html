@@ -979,8 +979,14 @@ const musicLabel = userWantsMusic ? 'PAUSE' : 'PLAY';
             const slide = sessionSlides[currentIndex];
             qContainer.innerHTML = '';
             slide.questions.forEach((q, qIndex) => {
+                const optionsText = q.options.map((opt, i) => `Option ${i + 1}: ${opt.t}`).join('. ');
+                 const fullSpeechText = `${q.q}. ${optionsText}`;
                 qContainer.innerHTML += `
                     <div class="question-block">
+                    <p onclick="playSpeech('${fullSpeechText.replace(/'/g, "\\'")}')" style="cursor: pointer;">
+                    <strong>Q${qIndex + 1}:</strong> ${q.q} 
+                    <span style="font-size: 0.8rem; color: var(--text-color); display: block;">(Tap to hear question)</span>
+                    </p>
                         <p><strong>Q${qIndex + 1}:</strong> ${q.q}</p>
                         <div class="options-grid">
                             ${q.options.map((opt, optIndex) => `
