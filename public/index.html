@@ -22,6 +22,27 @@
             touch-action: manipulation;
         }
 
+/* High-intensity blur for protection */
+.screenshot-blur {
+    filter: blur(40px) brightness(0.8) !important;
+    transition: filter 0.1s ease-out;
+    pointer-events: none; /* Prevents interaction while blurred */
+    user-select: none;
+}
+
+/* Optional: Overlay text that appears only during the blur */
+#blur-notice {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10001;
+    color: #a3e635;
+    font-size: 1.5rem;
+    font-weight: bold;
+    text-align: center;
+}
         
 
 
@@ -137,7 +158,10 @@
 </head>
 <body>
 
-    
+    <div id="protection-notice" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10000; color: #a3e635; background: rgba(6, 78, 59, 0.8); backdrop-filter: blur(20px); display: none; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
+        <h1 style="font-size: 2rem;">⚠️ CONTENT PROTECTED</h1>
+        <p style="color: white;">Screenshots are disabled to protect instructional materials.</p>
+    </div>
     
     <div id="yt-background-player"></div>
 
@@ -1117,7 +1141,53 @@ function toggleBackgroundMusic() {
         if (btn) btn.innerHTML = '⏸️'; // Pause icon indicator
     }
 }
+        
 
+(function() {
+    const mainApp = document.getElementById('app');
+    const navBar = document.querySelector('nav');
+    const footer = document.querySelector('footer');
+    const notice = document.createElement('div');
+    
+    // Setup a notice that only shows when blurred
+    notice.id = 'blur-notice';
+    notice.innerHTML = '⚠️ CONTENT PROTECTED<br>Return to window to view';
+    document.body.appendChild(notice);
+
+    const applyProtection = () => {
+        mainApp.classList.add('screenshot-blur');
+        navBar.classList.add('screenshot-blur');
+        footer.classList.add('screenshot-blur');
+        notice.style.display = 'block';
+        window.speechSynthesis.cancel(); // Stop reading if they try to capture
+    };
+
+    const removeProtection = () => {
+        mainApp.classList.remove('screenshot-blur');
+        navBar.classList.remove('screenshot-blur');
+        footer.classList.remove('screenshot-blur');
+        notice.style.display = 'none';
+    };
+
+    // Trigger blur when user swipes for notification shade or triggers screenshot buttons
+    window.addEventListener('blur', applyProtection);
+    
+    // Trigger blur if they switch apps or tabs
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) applyProtection();
+    });
+
+    // Restore content when they click back into the lesson
+    window.addEventListener('focus', removeProtection);
+    
+    // Extra layer: Clear the clipboard every second so they can't paste text elsewhere
+    setInterval(() => {
+        if (!document.hasFocus()) {
+            navigator.clipboard.writeText("AIGHAM Protected Content");
+        }
+    }, 1000);
+})();
+        
         
     </script>
 </body>
