@@ -1,0 +1,12 @@
+{
+  "name": "aigham-science-lesson",
+  "version": "1.0.0",
+  "description": "Force Motion and Energy Lesson",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
