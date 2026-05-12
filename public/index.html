@@ -987,7 +987,7 @@ const musicLabel = userWantsMusic ? 'PAUSE' : 'PLAY';
                     <strong>Q${qIndex + 1}:</strong> ${q.q} 
                     <span style="font-size: 0.8rem; color: var(--text-color); display: block;">(Tap to hear question)</span>
                     </p>
-                        <p><strong>Q${qIndex + 1}:</strong> ${q.q}</p>
+                        
                         <div class="options-grid">
                             ${q.options.map((opt, optIndex) => `
                                 <button class="${q.answered && q.selectedIndex === optIndex ? 'selected' : ''}" 
