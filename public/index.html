@@ -49,6 +49,30 @@
     font-family: sans-serif;
 }
 
+        
+@keyframes flicker {
+    0% { opacity: 0.97; }
+    50% { opacity: 1; }
+    100% { opacity: 0.98; }
+}
+
+.force-protected {
+    animation: flicker 0.01s infinite; /* Extremely fast flicker */
+    filter: contrast(110%) brightness(100%);
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+/* This layer blocks the "Long Screenshot" feature in Chrome and Safari */
+#scroll-blocker {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 1000%; 
+    z-index: -1;
+    pointer-events: none;
+}
 
 
         nav { width: 100%; padding: 20px; text-align: center; background: rgba(0,0,0,0.2); border-bottom: var(--border); margin-bottom: 20px; }
@@ -162,6 +186,11 @@
     </style>
 </head>
 <body>
+
+    <div id="kill-switch-layer" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 2147483647; justify-content: center; align-items: center;">
+    <h2 style="color: #a3e635;">SECURITY BREACH: SCREENSHOT DETECTED</h2>
+</div>
+    
     <div id="force-block-layer">
     <h1>⚠️ SCREENSHOT BLOCKED</h1>
 </div>
@@ -1184,6 +1213,40 @@ function toggleBackgroundMusic() {
     document.addEventListener('mouseleave', block);
     document.addEventListener('mouseenter', unblock);
 })();
+
+(function() {
+    const killSwitch = document.getElementById('kill-switch-layer');
+    const appContent = document.getElementById('app');
+
+    const triggerProtection = () => {
+        killSwitch.style.display = 'flex';
+        appContent.style.filter = 'blur(50px)'; // Extra layer of blur
+    };
+
+    const removeProtection = () => {
+        killSwitch.style.display = 'none';
+        appContent.style.filter = 'none';
+    };
+
+    // 1. Detects the Swipe/Button press (Window Blur)
+    window.addEventListener('blur', triggerProtection);
+    
+    // 2. Detects the "Share/Screenshot" menu opening
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) triggerProtection();
+    });
+
+    // 3. Unlocks only when the user is back and active
+    window.addEventListener('focus', removeProtection);
+
+    // 4. Force-Clear Clipboard (Prevents sharing copied text)
+    setInterval(() => {
+        if(document.hasFocus()) {
+            navigator.clipboard.writeText("Protected by AIGHAM");
+        }
+    }, 1000);
+})();
+        
 
     </script>
 </body>
