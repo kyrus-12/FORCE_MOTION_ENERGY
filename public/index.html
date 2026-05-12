@@ -22,57 +22,7 @@
             touch-action: manipulation;
         }
 
-        /* Highly aggressive: prevents selection and hides during print/capture attempts */
-.protected-content {
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-}
-
-@media print {
-    body { display: none !important; }
-}
-
-#force-block-layer {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: #000000; /* Total blackout */
-    z-index: 2147483647; /* Highest possible depth */
-    color: #a3e635;
-    justify-content: center;
-    align-items: center;
-    font-family: sans-serif;
-}
-
         
-@keyframes flicker {
-    0% { opacity: 0.97; }
-    50% { opacity: 1; }
-    100% { opacity: 0.98; }
-}
-
-.force-protected {
-    animation: flicker 0.01s infinite; /* Extremely fast flicker */
-    filter: contrast(110%) brightness(100%);
-    -webkit-user-select: none;
-    user-select: none;
-}
-
-/* This layer blocks the "Long Screenshot" feature in Chrome and Safari */
-#scroll-blocker {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 1000%; 
-    z-index: -1;
-    pointer-events: none;
-}
 
 
         nav { width: 100%; padding: 20px; text-align: center; background: rgba(0,0,0,0.2); border-bottom: var(--border); margin-bottom: 20px; }
@@ -187,16 +137,7 @@
 </head>
 <body>
 
-    <div id="kill-switch-layer" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 2147483647; justify-content: center; align-items: center;">
-    <h2 style="color: #a3e635;">SECURITY BREACH: SCREENSHOT DETECTED</h2>
-</div>
     
-    <div id="force-block-layer">
-    <h1>⚠️ SCREENSHOT BLOCKED</h1>
-</div>
-
-<div class="protected-content">
-    </div>
     
     <div id="yt-background-player"></div>
 
@@ -1177,77 +1118,7 @@ function toggleBackgroundMusic() {
     }
 }
 
-        (function() {
-    const blocker = document.getElementById('force-block-layer');
-
-    const block = () => {
-        blocker.style.display = 'flex';
-        document.title = "BLOCKED";
-    };
-
-    const unblock = () => {
-        blocker.style.display = 'none';
-        document.title = "FORCE, MOTION AND ENERGY";
-    };
-
-    // 1. HARD BLUR: Triggered when the window is no longer the "Active" focus
-    // This happens the moment a user clicks a screenshot tool or swipes for a menu.
-    window.addEventListener('blur', block);
-    window.addEventListener('focus', unblock);
-
-    // 2. TAB SWITCHING: If they try to use a browser-based capture tool
-    document.addEventListener('visibilitychange', () => {
-        if (document.hidden) block();
-    });
-
-    // 3. KEYBOARD KILL-SWITCH: Immediate blackout on common capture keys
-    window.addEventListener('keydown', (e) => {
-        if (e.key === 'PrintScreen' || e.key === 'Snapshot' || (e.ctrlKey && e.shiftKey && e.key === 'S')) {
-            block();
-            setTimeout(unblock, 2000); // Briefly blackout
-            navigator.clipboard.writeText("Protected Content"); // Purge clipboard
-        }
-    });
-
-    // 4. MOUSE LEAVE: If the mouse leaves the browser area (common for snipping)
-    document.addEventListener('mouseleave', block);
-    document.addEventListener('mouseenter', unblock);
-})();
-
-(function() {
-    const killSwitch = document.getElementById('kill-switch-layer');
-    const appContent = document.getElementById('app');
-
-    const triggerProtection = () => {
-        killSwitch.style.display = 'flex';
-        appContent.style.filter = 'blur(50px)'; // Extra layer of blur
-    };
-
-    const removeProtection = () => {
-        killSwitch.style.display = 'none';
-        appContent.style.filter = 'none';
-    };
-
-    // 1. Detects the Swipe/Button press (Window Blur)
-    window.addEventListener('blur', triggerProtection);
-    
-    // 2. Detects the "Share/Screenshot" menu opening
-    document.addEventListener('visibilitychange', () => {
-        if (document.hidden) triggerProtection();
-    });
-
-    // 3. Unlocks only when the user is back and active
-    window.addEventListener('focus', removeProtection);
-
-    // 4. Force-Clear Clipboard (Prevents sharing copied text)
-    setInterval(() => {
-        if(document.hasFocus()) {
-            navigator.clipboard.writeText("Protected by AIGHAM");
-        }
-    }, 1000);
-})();
         
-
     </script>
 </body>
 </html>
