@@ -860,34 +860,37 @@
             else if (view === 'lesson') renderLesson();
         }
 
-        function renderLesson() {
+       function renderLesson() {
     const container = document.getElementById('main-content');
     const slide = sessionSlides[currentIndex];
     
-    let mediaHtml = '';
+    // 1. Get the current raw text content
+    let textContent = typeof slide.discussion === 'object' ? slide.discussion[currentLang] : slide.discussion;
+    
+    // 2. Safely swap media placeholders [media-0], [media-1], etc., into HTML structures natively inside the text
     if (slide.assets && slide.assets.length > 0) {
-        mediaHtml = slide.assets.map(asset => {
+        slide.assets.forEach((asset, index) => {
+            let assetHtml = '';
             if (asset.type === 'video') {
-                return `<div class="media-container"><iframe src="${asset.url}" frameborder="0" allowfullscreen></iframe></div>`;
+                assetHtml = `<div class="media-container"><iframe src="${asset.url}" frameborder="0" allowfullscreen></iframe></div>`;
             } else if (asset.type === 'image') {
-                return `
+                assetHtml = `
                     <div class="media-container">
                         <img src="${asset.url}" alt="Slide Visual">
-                        <div style="text-align: center; padding: 10px; background: rgba(0,0,0,0.3); color: var(--text-color); font-size: 0.9rem; font-style: italic;">
-                            ${asset.title || ''} 
-                        </div>
+                        ${asset.title ? `<div style="text-align: center; padding: 10px; background: rgba(0,0,0,0.3); color: var(--text-color); font-size: 0.9rem; font-style: italic;">${asset.title}</div>` : ''}
                     </div>`;
             }
-            return '';
-        }).join('');
+            
+            // Replace the placeholder string with the true visual object markup
+            textContent = textContent.replace(`[media-${index}]`, assetHtml);
+        });
     }
     
-    
-const musicLabel = userWantsMusic ? 'PAUSE' : 'PLAY';
-
+    const musicLabel = userWantsMusic ? 'PAUSE' : 'PLAY';
+            
     container.innerHTML = `
         <div id="lesson-scoreboard" style="display: flex; justify-content: space-between; align-items: center;">
-                <div style="display: flex; gap: 8px;">
+            <div style="display: flex; gap: 8px;">
                 <button onclick="setLanguageAndRead('en')" style="background: #3b82f6; color: white; padding: 8px 12px; font-size: 0.9rem;">ENGLISH</button>
                 <button onclick="setLanguageAndRead('fil')" style="background: #10b981; color: white; padding: 8px 12px; font-size: 0.9rem;">FILIPINO</button>
             </div>
@@ -902,11 +905,11 @@ const musicLabel = userWantsMusic ? 'PAUSE' : 'PLAY';
         </div>
 
         <h1>${slide.title}</h1>
-            <div class="discussion-box" onclick="handleTap(sessionSlides[currentIndex].discussion)">
-                  <p id="discussion-text" style="font-size: 1.3rem;">
-                ${typeof slide.discussion === 'object' ? slide.discussion[currentLang] : slide.discussion}
-            </p>
-            ${mediaHtml}
+        
+        <div class="discussion-box" onclick="handleTap(sessionSlides[currentIndex].discussion)">
+            <div id="discussion-text" style="font-size: 1.3rem; line-height: 1.6;">
+                ${textContent}
+            </div>
         </div>
 
         <div id="questions-modal" class="modal">
@@ -925,12 +928,12 @@ const musicLabel = userWantsMusic ? 'PAUSE' : 'PLAY';
     `;
     renderQuestions();
 }
+
     
     
 
-        // --- TTS and Tap Logic ---
-        
-        function stripHtml(html) {
+        // --- TTS and Tap Logic ---  
+    function stripHtml(html) {
             return html.replace(/<[^>]*>/g, ' ');
         }
 
@@ -950,6 +953,7 @@ const musicLabel = userWantsMusic ? 'PAUSE' : 'PLAY';
     
     // FIX: Remove HTML tags only, preserve Filipino punctuation and structure
     let cleanText = stripHtml(rawText)
+        .replace(/\[media-\d+\]/gi, '')
         .replace(/\[.*?\]/g, '') // Remove [bracketed annotations]
         .replace(/\s+/g, ' ')    // Collapse extra spaces
         .trim();
@@ -1012,18 +1016,13 @@ const musicLabel = userWantsMusic ? 'PAUSE' : 'PLAY';
         function setLanguageAndRead(lang) {
             window.speechSynthesis.cancel();
             currentLang = lang;
-            
-            // Update the UI text
-            const slide = sessionSlides[currentIndex];
-            const textElement = document.getElementById('discussion-text');
-            if (textElement) {
-                textElement.innerHTML = typeof slide.discussion === 'object' ? slide.discussion[lang] : slide.discussion;
-            }
+            renderLesson();
+        
             
             if (lang === 'en') {
-        playSpeech(slide.discussion);
+        playSpeech(sessionSlides[currentIndex].discussion);
         }
-        }
+    }
 
     
         function handleTap(text) {
